@@ -19,6 +19,9 @@ class UGBA:
         self.idx_atk = AtkNodeSelector(args, data).cluster_degree(data.idx_train)
         self.X_atk = self.X[self.idx_atk]
 
+        self.idx_atk_test = AtkNodeSelector(args, data).cluster_degree(data.idx_test)
+        self.X_atk_test = self.X[self.idx_atk_test]
+
         self.poisoned_A = None
         self.poisoned_X = None
         self.poisoned_W = None
@@ -119,7 +122,18 @@ class UGBA:
                       '[ASR_outer_atk:{:.4f}]'.format(i, acc_outer_train_clean, acc_outer_train_atk, asr_outer_atk))
 
     def test(self, idx_atk, backdoor_model):
-        pass
+        trigger_feat, trigger_edge_weight = self.tg.forward(self.X[idx_atk])
+
+        trigger_edge_weight = torch.cat(
+            [torch.ones([len(trigger_feat), 1], dtype=torch.float, device=self.args.device), trigger_edge_weight],
+            dim=1)  # 加上链接到中毒节点的权重，累计4条边
+        trigger_feat = trigger_feat.view([-1, self.X.shape[1]])
+        self.poisoned_data(trigger_feat, trigger_edge_weight)
+
+        output = backdoor_model.forward(self.poisoned_X, self.poisoned_A, self.poisoned_W)
+
+        acc_test = utils.accuracy(output[idx_atk], self.Y[idx_atk])
+        print('[acc_test:{:.4f}]'.format(acc_test))
 
 
 class TriggerGenerator(torch.nn.Module):

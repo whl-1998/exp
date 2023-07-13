@@ -47,7 +47,7 @@ parser.add_argument('--vs_ratio', type=float, default=0, help="ratio of poisonin
 # defense setting
 parser.add_argument('--defense_mode', type=str, default="none", choices=['prune', 'isolate', 'none'],
                     help="Mode of defense")
-parser.add_argument('--prune_thr', type=float, default=0.8, help="Threshold of prunning edges")
+parser.add_argument('--prune_thr', type=float, default=0.2, help="Threshold of prunning edges")
 parser.add_argument('--target_loss_weight', type=float, default=1, help="Weight of optimize outter trigger generator")
 parser.add_argument('--homo_loss_weight', type=float, default=100, help="Weight of optimize similarity loss")
 parser.add_argument('--homo_boost_thrd', type=float, default=0.8, help="Threshold of increase similarity")
@@ -55,7 +55,7 @@ parser.add_argument('--homo_boost_thrd', type=float, default=0.8, help="Threshol
 # attack setting
 
 
-parser.add_argument('--test_model', type=str, default='GCN', choices=['GCN', 'GAT', 'GraphSage', 'GIN'],
+parser.add_argument('--test_model', type=str, default='RobustGCN', choices=['GCN', 'GAT', 'GraphSage', 'GIN', 'RobustGCN'],
                     help='Model used to attack')
 parser.add_argument('--evaluate_mode', type=str, default='1by1', choices=['overall', '1by1'],
                     help='Model used to attack')

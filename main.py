@@ -9,9 +9,11 @@ from attacks.atk_node_selector import AtkNodeSelector
 from attacks.gta import GTA
 from attacks.ugba import UGBA
 from data_processor import DataProcessor
+from defend.prune import Prune
 from model_constructor import ModelConstructor
 from arg_processor import args
 from models import TriggerGenerator
+from models.RobustGCN import RobustGCN
 
 dp = DataProcessor(args=args)
 dp.get_split()
@@ -32,6 +34,9 @@ mc.test(Y=data.y, idx_test=idx_clean_test)
 ns = AtkNodeSelector(args, data)
 poisoned_idx = ns.cluster_degree(idx_train)
 
+data.edge_index, data.edge_weight = Prune(data, args).prune_edge()
+
 gta = GTA(args=args, data=data)
 
 gta.fit(idx_train=idx_train, idx_atk=poisoned_idx, benign_model=mc.model)
+gta.test(idx_atk=data.idx_test, backdoor_model=mc)
