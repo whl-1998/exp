@@ -21,20 +21,19 @@ parser.add_argument('--epochs', type=int, default=200, help='Number of epochs to
 
 # trigger settings
 parser.add_argument('--trigger_size', type=int, default=3, help='trigger_size')
-parser.add_argument('--num_poisoned_node', type=int, default=80, help="number of poisoning nodes")
+parser.add_argument('--num_poisoned_node', type=int, default=1200, help="number of poisoning nodes")
 parser.add_argument('--target_class', type=int, default=0, help='fake label')
 parser.add_argument('--selection_method', type=str, default='cluster_degree',
                     choices=['cluster', 'random', 'cluster_degree'],
                     help='Method to select idx_attach for training trojan model')
+parser.add_argument('--trojan_epochs', type=int, default=50, help='Number of epochs to train trigger generator.')
+parser.add_argument('--backdoor_model_epochs', type=int, default=20, help='Number of inner')
+parser.add_argument('--tg_hidden_dim', type=int, default=[32], help='trigger generator hidden dim')
 
-# AtkNodeSelector
-# trigger generator settings
-parser.add_argument('--tg_hidden_dim', type=int, default=32, help='trigger generator hidden dim')
+
 
 parser.add_argument('--thrd', type=float, default=0.5, help='Threshold')
 
-parser.add_argument('--trojan_epochs', type=int, default=400, help='Number of epochs to train trigger generator.')
-parser.add_argument('--inner', type=int, default=20, help='Number of inner')
 parser.add_argument('--debug', type=bool, default=True)
 
 # backdoor setting

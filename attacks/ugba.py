@@ -16,16 +16,15 @@ class UGBA:
         self.Y = data.y
         self.W = data.edge_weight
 
-        self.idx_atk = AtkNodeSelector(args, data).cluster_degree(data.idx_train)
-        self.X_atk = self.X[self.idx_atk]
+        self.idx_train_atk = AtkNodeSelector(args, data).random_obtain_trigger_ids(data.idx_train)
+        self.trigger_size = args.trigger_size
+        self.tg_hidden_dim = args.tg_hidden_dim
+        self.trojan_epochs = self.args.trojan_epochs
+        self.backdoor_model_epochs = self.args.backdoor_model_epochs
 
-        self.idx_atk_test = AtkNodeSelector(args, data).cluster_degree(data.idx_test)
-        self.X_atk_test = self.X[self.idx_atk_test]
-
-        self.poisoned_A = None
-        self.poisoned_X = None
-        self.poisoned_W = None
-        self.poisoned_Y = None
+        self.tg = TriggerGenerator(self.X.shape[1], self.args.trigger_size, hidden_dim=self.args.hidden_dim).to(
+            self.args.device)
+        self.hl = HomoLoss(self.args)
 
     def get_trigger_index(self, trigger_size):
         """
@@ -76,15 +75,17 @@ class UGBA:
         pass
 
     def fit(self, idx_train, idx_atk, benign_model):
-        self.tg = TriggerGenerator(self.X.shape[1], self.args.trigger_size, hidden_dim=self.args.hidden_dim).to(self.args.device)
-        self.hl = HomoLoss(self.args)
-
+        X = self.X
+        Y = self.Y
+        W = self.W
+        A = self.A
+        
         optimizer_benign_model = optim.Adam(benign_model.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
         optimizer_trigger_generator = optim.Adam(self.tg.parameters(), lr=self.args.lr, weight_decay=self.args.weight_decay)
 
         for i in range(self.args.trojan_epochs):
             self.tg.train()
-            trigger_feat, trigger_edge_weight = self.tg.forward(self.X_atk)
+            trigger_feat, trigger_edge_weight = self.tg.forward(self.X)
 
             trigger_edge_weight = torch.cat([torch.ones([len(trigger_feat), 1], dtype=torch.float, device=self.args.device), trigger_edge_weight], dim=1)  # 加上链接到中毒节点的权重，累计4条边
             trigger_feat = trigger_feat.view([-1, self.X.shape[1]])
