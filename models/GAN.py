@@ -5,6 +5,9 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch
 
+from arg_processor import args
+from data_processor import DataProcessor
+
 
 class GAN:
     def __init__(self, args, input_dim, output_dim, device=None):
@@ -20,8 +23,8 @@ class GAN:
         self.discriminator = Discriminator(input_dim)
 
     def train(self, epochs, X, adversarial_loss=torch.nn.BCELoss()):
-        optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.args.lr, betas=(self.args.b1, self.args.b2))
-        optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.args.lr, betas=(self.args.b1, self.args.b2))
+        optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.args.lr, betas=(0.5, 0.999))
+        optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.args.lr, betas=(0.5, 0.999))
         
         for epoch in range(epochs):
             
@@ -92,3 +95,17 @@ class Discriminator(nn.Module):
 
     def forward(self, X):
         return self.model(X)
+
+
+if __name__ == '__main__':
+    # 数据获取
+    dp = DataProcessor(args=args)
+    dp.get_split()
+    data = dp.data
+    idx_train = data.idx_train
+    idx_val = data.idx_val
+    idx_clean_test = data.idx_clean_test
+    idx_atk_test = data.idx_atk_test
+    gan = GAN(args=args, input_dim=data.x.shape[1], output_dim=max(data.y)+1, device=args.device)
+    gan.train(200, data.x)
+    
